@@ -51,6 +51,7 @@ class StockMove(models.Model):
 class StockMoveLine(models.Model):
     _inherit = 'stock.move.line'
 
+    """
     @api.model_create_multi
     def create(self, vals_list):
         # Primero modificamos los vals_list según nuestra necesidad
@@ -65,6 +66,8 @@ class StockMoveLine(models.Model):
         mls = super().create(vals_list)
         
         return mls
+    """
+    
     def write(self, vals):
         # Verificar si se está modificando quantity y si move_id tiene quantity=0
         if 'quantity' in vals:
