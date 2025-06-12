@@ -1,0 +1,5 @@
+id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
+access_purchase_order_pending_user,purchase.order.pending.user,model_purchase_order_pending,base.group_user,1,1,1,0
+access_purchase_order_pending_manager,purchase.order.pending.manager,model_purchase_order_pending,purchase.group_purchase_manager,1,1,1,0
+access_purchase_requirements_user,purchase_requirements_user,model_purchase_requirements,base.group_user,1,1,1,1
+access_purchase_requirements_line_user,purchase_requirements_line_user,model_purchase_requirements_line,purchase.group_purchase_manager,1,1,1,1

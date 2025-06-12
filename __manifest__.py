@@ -19,5 +19,12 @@
     'version': '1.0',
 
     # any module necessary for this one to work correctly
-    'depends': ['stock'],
+    'depends': ['stock','purchase','l10n_xma_einvoice','helpdesk'],
+    'data':['security/ir.model.access.csv',
+            'views/stock_picking.xml',
+            'views/res_users.xml',
+            'views/purchase_pending.xml',
+            'views/stock_uom.xml',
+            'views/purchase_requirements.xml'],
+    
 }

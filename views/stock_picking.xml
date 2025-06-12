@@ -1,0 +1,38 @@
+<odoo>
+    <record id="view_picking_form_inherit" model="ir.ui.view">
+        <field name="name">stock.picking.form.inherit</field>
+        <field name="model">stock.picking</field>
+        <field name="inherit_id" ref="stock.view_picking_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//header" position="inside">
+                <field name="available_product_ids" invisible="1"/>
+                <button name="remove_lines_on_0" 
+                        type="object" 
+                        string="Remover lineas sin stock"
+                        />
+            </xpath>
+            <xpath expr="//field[@name='move_ids_without_package']/list/field[@name='product_id']" position="attributes">
+                <attribute name="domain">[('id', 'in', parent.available_product_ids)]</attribute>
+                <attribute name="context">{'default_is_storable': True, 'location_id': parent.location_id}</attribute>
+
+            </xpath>
+        </field>
+    </record>
+    <record id="product_product_tree_custom" model="ir.ui.view">
+        <field name="name">product.product.tree.custom</field>
+        <field name="model">product.product</field>
+        <field name="inherit_id" ref="stock.view_stock_product_tree"/>
+        <field name="arch" type="xml">
+    
+            <!-- Insertamos después del campo qty_available -->
+            <xpath expr="//field[@name='qty_available']" position="after">
+                <field name="qty_available_in_location"
+                       string="Stock en Ubicación"
+                       optional="show"
+                       invisible="not is_storable"/>
+            </xpath>
+    
+        </field>
+    </record>
+    
+</odoo>

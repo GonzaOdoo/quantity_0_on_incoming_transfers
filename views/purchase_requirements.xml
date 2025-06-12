@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<odoo>
+
+    <!-- Vista Lista -->
+    <record id="view_purchase_requirements_tree" model="ir.ui.view">
+        <field name="name">purchase.requirements.tree</field>
+        <field name="model">purchase.requirements</field>
+        <field name="arch" type="xml">
+            <list>
+                <field name="name"/>
+                <field name="state"/>
+                <field name="date"/>
+                <field name="partner_id"/>
+                <field name="category_id"/>
+            </list>
+        </field>
+    </record>
+
+    <!-- Vista Formulario -->
+    <record id="view_purchase_requirements_form" model="ir.ui.view">
+        <field name="name">purchase.requirements.form</field>
+        <field name="model">purchase.requirements</field>
+        <field name="arch" type="xml">
+            <form>
+                <header>
+                    <field name="state" widget="statusbar"/>
+                </header>
+                <sheet>
+                    <group>
+                        <field name="name"/>
+                        <field name="date"/>
+                        <field name="partner_id"/>
+                        <field name="category_id"/>
+                    </group>
+
+                    <notebook>
+                        <page string="Líneas de Requirimiento">
+                            <field name="line_ids" widget="many2many">
+                                <list editable="bottom">
+                                    <field name="product_id"/>
+                                    <field name="qty_on_hand" readonly="1"/>
+                                    <field name="qty_forecast" readonly="1"/>
+                                    <field name="min" readonly="1"/>
+                                    <field name="max" readonly="1"/>
+                                    <field name="qty_to_order"/>
+                                </list>
+                            </field>
+                        </page>
+                    </notebook>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <!-- Acción para abrir la vista lista -->
+    <record id="action_purchase_requirements" model="ir.actions.act_window">
+        <field name="name">Requerimientos de Compra</field>
+        <field name="res_model">purchase.requirements</field>
+        <field name="view_mode">list,form</field>
+    </record>
+
+    <!-- Menú principal -->
+    <menuitem id="menu_purchase_requirements" name="Pedidos de compra"
+              parent="purchase.menu_procurement_management"
+              action="action_purchase_requirements"/>
+
+</odoo>

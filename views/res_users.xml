@@ -1,0 +1,17 @@
+<odoo>
+    <record id="view_users_form_inherit" model="ir.ui.view">
+        <field name="name">res.users.form.inherit</field>
+        <field name="model">res.users</field>
+        <field name="inherit_id" ref="base.view_users_form"/>
+        <field name="arch" type="xml">
+            <!-- Vamos a agregar el campo en la pestaña 'Preferences' -->
+            <xpath expr="//page[@name='preferences']" position="inside">
+                <group string="Ubicaciones de salida">
+                    <field name="internal_default_location" 
+                           options="{'no_open': True}"/>
+                </group>
+            </xpath>
+            
+        </field>
+    </record>
+</odoo>

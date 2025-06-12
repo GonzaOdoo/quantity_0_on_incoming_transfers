@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Vista formulario para el reporte -->
+    <record id="view_purchase_order_pending_form" model="ir.ui.view">
+        <field name="name">purchase.order.pending.form</field>
+        <field name="model">purchase.order.pending</field>
+        <field name="arch" type="xml">
+            <form string="Reporte de líneas pendientes">
+                <header>
+                    <button name="generate_excel_report" string="Exportar a Excel" type="object" class="btn-secondary"/>
+                </header>
+                <sheet>
+                    <group>
+                        <group>
+                            <field name="partner_id"/>
+                        </group>
+                        <group>
+                            <field name="date_start"/>
+                            <field name="date_end"/>
+                        </group>
+                    </group>
+
+                    <notebook>
+                        <page string="Resultados">
+                            <div invisible="order_list">
+                                <div class="alert alert-info">
+                                    <i class="fa fa-info-circle"/> No se encontraron líneas pendientes con los filtros actuales
+                                </div>
+                            </div>
+                            <field name="order_list" nolabel="1" readonly="1">
+                                <list default_order="date_approve asc">
+                                    <field name="date_approve"/>
+                                    <field name="order_id" widget="many2one"/>
+                                    <field name="product_id" widget="many2one"/>
+                                    <field name="product_origin_code"/>
+                                    <field name="product_presentation"/>
+                                    <field name="partner_id" widget="many2one"/>
+                                    <field name="price_unit"/>
+                                    <field name="product_uom_qty" string="Pedido"/>
+                                    <field name="qty_received" string="Recibido"/>
+                                    <field name="pending_amount" string="Pendiente"/>
+                                </list>
+                            </field>
+                        </page>
+                    </notebook>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <!-- Acción de ventana -->
+    <record id="action_purchase_order_pending" model="ir.actions.act_window">
+        <field name="name">Pedidos pendientes</field>
+        <field name="res_model">purchase.order.pending</field>
+        <field name="view_mode">form</field>
+        <field name="target">current</field>
+        <field name="view_id" ref="view_purchase_order_pending_form"/>
+    </record>
+
+    <!-- Menú -->
+    <menuitem id="menu_purchase_order_pending" 
+              name="Recibos pendientes" 
+              action="action_purchase_order_pending" 
+              parent="purchase.purchase_report_main"
+              sequence="20"/>
+</odoo>
