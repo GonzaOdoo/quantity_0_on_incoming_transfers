@@ -1,0 +1,12 @@
+<odoo>
+    <record id="pedido_compra_sequence" model="ir.sequence">
+        <field name="name">Pedidos Secuencia</field>
+        <field name="code">pedidos_compra</field>
+        <field name="prefix">PE</field>
+        <field name="padding">4</field>
+        <field name="number_next">1</field>
+        <field name="number_increment">1</field>
+    </record>
+
+    
+</odoo>

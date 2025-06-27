@@ -23,13 +23,25 @@ class StockPicking(models.Model):
     def _compute_available_products(self):
         for picking in self:
             _logger.info("Busqueda")
-            if picking.picking_type_code in ['outgoing','internal'] and picking.location_id:
+            if picking.picking_type_code in ['outgoing'] and picking.location_id:
+                # Obtener todas las ubicaciones hijas (incluye la propia si no tiene hijos)
+                location_ids = picking.location_id.child_ids.ids or [picking.location_id.id]
+    
+                quants = self.env['stock.quant'].search([
+                    ('location_id', 'in', location_ids),
+                    ('quantity', '>', 0),
+                    ('product_id.active', '=', True),
+                ])
+    
+                # Obtenemos los productos disponibles
+                products = quants.mapped('product_id')
+                picking.available_product_ids = [(6, 0, products.ids)]
+            elif picking.picking_type_code in ['internal'] and picking.location_id:
                 _logger.info("Busqueda 2")
                 # Buscamos en stock.quant los productos disponibles en esa ubicación
-                products = self.env['stock.quant'].search([
-                    ('location_id', '=', picking.location_id.id),
-                    ('quantity', '>', 0),# Solo productos físicos
-                ]).mapped('product_id')
+                products = self.env['product.product'].search([
+                    ('categ_id', 'in', [picking.location_dest_id.product_category_id.id,35]),
+                ]).mapped('id')
                 _logger.info(products)
                 picking.available_product_ids = products
             else:
@@ -177,10 +189,15 @@ class ProductProduct(models.Model):
         for product in self:
             location_id = self.env.context.get('location_id')
             if location_id:
-                # Buscamos todos los quant con stock > 0 en esa ubicación
+                # Obtener todas las ubicaciones hijas (incluyendo la misma si no tiene hijos)
+                location_ids = self.env['stock.location'].browse(location_id).child_ids.ids
+                if not location_ids:  # Si no tiene hijos, usar solo la ubicación actual
+                    location_ids = [location_id]
+
+                # Buscamos todos los quant con stock > 0 en esa ubicación o sub-ubicaciones
                 quants = self.env['stock.quant'].search([
                     ('product_id', '=', product.id),
-                    ('location_id', '=', location_id),
+                    ('location_id', 'in', location_ids),
                     ('quantity', '>', 0)
                 ])
                 # Sumamos todas las cantidades

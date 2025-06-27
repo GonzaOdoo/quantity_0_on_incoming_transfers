@@ -6,12 +6,14 @@
         <field name="name">purchase.requirements.tree</field>
         <field name="model">purchase.requirements</field>
         <field name="arch" type="xml">
-            <list>
-                <field name="name"/>
-                <field name="state"/>
-                <field name="date"/>
-                <field name="partner_id"/>
+            <list default_order="create_date desc">
+                 <field name="date"/>
+                <field name="name" string="Referencia"/>
                 <field name="category_id"/>
+                <field name="state" widget="badge"
+                       decoration-info="state == 'draft'"
+                       decoration-warning="state == 'pending'"
+                       decoration-success="state == 'done'"/>
             </list>
         </field>
     </record>
@@ -23,21 +25,37 @@
         <field name="arch" type="xml">
             <form>
                 <header>
+                    <button name="action_confirm" type="object" string="Confirmar Pedido" class="btn-primary" invisible="state != 'draft'"/>
+                    <button name="action_create_purchase_order" type="object" string="Aprobar" class="btn-primary" invisible="state != 'pending'"/>
                     <field name="state" widget="statusbar"/>
                 </header>
                 <sheet>
+                    <div class="oe_button_box" name="button_box">
+                        <button type="object" name="action_view_orders" class="oe_stat_button" icon="fa-pencil-square-o" invisible="not purchase_ids">
+                            <field name="order_count" widget="statinfo" string="Ordénes de compra"/>
+                        </button>
+                    </div>
+                    <div class="oe_title">
+                        <span class="o_form_label">Pedido de compra</span>
+                        <h1 class="d-flex">
+                            <field name="name" readonly="1"/>
+                        </h1>
+                    </div>
                     <group>
-                        <field name="name"/>
-                        <field name="date"/>
-                        <field name="partner_id"/>
-                        <field name="category_id"/>
+                        <group>
+                            <field name="date"  readonly="state != 'draft'"/>
+                            <field name="category_id"  readonly="state != 'draft'"/>
+                        </group>
                     </group>
 
                     <notebook>
                         <page string="Líneas de Requirimiento">
-                            <field name="line_ids" widget="many2many">
+                            <button name="open_add_product_list" type="object" string="Agregar productos"/>
+                            <field name="line_ids" widget="many2many" readonly="state == 'done'">
+                                
                                 <list editable="bottom">
                                     <field name="product_id"/>
+                                    <field name="partner_id"/>
                                     <field name="qty_on_hand" readonly="1"/>
                                     <field name="qty_forecast" readonly="1"/>
                                     <field name="min" readonly="1"/>
@@ -49,6 +67,39 @@
                     </notebook>
                 </sheet>
             </form>
+        </field>
+    </record>
+    
+    <record id="view_purchase_requirements_tree_requirements" model="ir.ui.view">
+        <field name="name">purchase.requirements.product.tree</field>
+        <field name="model">product.product</field>
+        <field name="arch" type="xml">
+            <list string="Productos">
+                <header>
+                    <button string="Agregar productos" type="object" name="action_add_to_requirement" class="btn-primary"/>
+                </header>
+                <field name="display_name"/>
+                <field name="default_code"/>
+                <field name="categ_id"/>
+                <field name="qty_available"/>
+            </list>
+        </field>
+    </record>
+
+    <!-- Heredar la vista form de purchase.order -->
+    <record id="view_purchase_order_form_inherit" model="ir.ui.view">
+        <field name="name">purchase.order.form.inherit</field>
+        <field name="model">purchase.order</field>
+        <field name="inherit_id" ref="purchase.purchase_order_form"/>
+        <field name="arch" type="xml">
+            <!-- Insertar botón justo después del campo 'origin' o donde quieras -->
+            <xpath expr="//div[@class='oe_button_box']" position="inside">
+                <button type="object" name="action_view_requirements" class="oe_stat_button" icon="fa-list-alt"
+                    invisible = "requirement_count == 0">
+                    <field name="requirement_count" widget="statinfo" string="Pedidos"/>
+                </button>
+            </xpath>
+            
         </field>
     </record>
 

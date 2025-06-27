@@ -25,6 +25,7 @@
             'views/res_users.xml',
             'views/purchase_pending.xml',
             'views/stock_uom.xml',
-            'views/purchase_requirements.xml'],
+            'views/purchase_requirements.xml',
+            'data/sequence.xml',],
     
 }

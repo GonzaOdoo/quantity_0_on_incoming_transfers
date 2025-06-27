@@ -9,3 +9,4 @@ from . import uom_print_by_quantity
 from . import account_move_overwrite
 from . import helpdesk
 from . import z_new
+from . import stock_location
