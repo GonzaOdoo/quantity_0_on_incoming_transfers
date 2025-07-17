@@ -1,0 +1,95 @@
+<t t-name="quantity_0_on_incoming_transfers.report_custom_lot_label">
+        <t t-call="web.html_container">
+            <!-- Una página por documento -->
+            <t t-foreach="docs" t-as="doc">
+               <div class="page" style="width: 100%; min-height: 27mm; ">
+                    <style>
+                        .label-container {
+                            position: relative;
+                            width: 100%;
+                            height: 25mm;
+                            font-size: 11px;
+                            box-sizing: border-box;
+                        }
+                        .label-top {
+                            display: flex;
+                            justify-content: space-between;
+                            margin-bottom: 1px;
+                            padding-top:3px;
+                        }
+                        .label-product {
+                            font-weight: bold;
+                            white-space: nowrap;
+                            overflow: hidden;
+                            text-overflow: ellipsis;
+                            max-width: 100%;
+                        }
+                        .label-barcode {
+                            text-align: center;
+                            width: 100%;
+                        }
+                        .label-lot {
+                            font-weight: bold;
+                            font-size: 10px;
+                        }
+                    </style>
+
+                    <div class="label-container">
+                        <!-- Información superior -->
+                        <div class="label-top">
+                            <div class="label-product" t-if="doc.product_id.default_code">
+                                [<t t-out="doc.product_id.default_code"/>]<t t-esc="doc.product_id.name"/>
+                            </div>
+                            <div class="label-product" t-else="">
+                                <t t-esc="doc.product_id.name"/>
+                            </div>
+                        </div>
+
+                        <!-- Número de lote -->
+                        <div class="label-lot" name="lot_name">
+                            <t t-esc="doc.name"/>
+                        </div>
+                        <div>
+                            <t  t-foreach="doc.purchase_order_ids" t-as="delivery">
+                                <span t-out="delivery.name" style='margin-right:10px;'/>
+                            </t>
+                            <span> Fecha:<span t-out="doc.create_date" t-options="{'widget': 'date'}"/></span>
+                        </div>
+
+                        <!-- Agregar fechas si están activadas -->
+                        <t t-if="doc.use_expiration_date">
+                            <div t-if="doc.use_date">
+                                Preferentemente antes de: <t t-out="doc.use_date" t-options="{&quot;widget&quot;: &quot;date&quot;}"/>
+                            </div>
+                            <div t-if="doc.expiration_date">
+                                Exp. <t t-out="doc.expiration_date" t-options="{&quot;widget&quot;: &quot;date&quot;}"/>
+                            </div>
+                        </t>
+                        <!-- Código de barras -->
+                        <div class="label-barcode">
+                            <t t-set="final_barcode" t-value="''"/>
+                            <t t-if="env.user.has_group('stock.group_stock_lot_print_gs1')">
+                                <t t-if="doc.product_id.valid_ean" t-set="final_barcode" t-value="'01' + '0' * (14 - len(doc.product_id.barcode)) + doc.product_id.barcode"/>
+                                <t name="gs1_datamatrix_lot" t-if="doc.product_id.tracking == 'lot'" t-set="final_barcode" t-value="(final_barcode or '') + '10' + doc.name"/>
+                                <t t-elif="doc.product_id.tracking == 'serial'" t-set="final_barcode" t-value="(final_barcode or '') + '21' + doc.name"/>
+
+                                
+                            </t>
+
+                            <!-- Mostrar GS1 DataMatrix o solo código de lote -->
+                            <t t-if="env.user.has_group('stock.group_stock_lot_print_gs1') and final_barcode">
+                                <span t-out="final_barcode"
+                                      t-options="{'widget': 'barcode', 'symbology': 'ECC200DataMatrix', 'img_style': 'width:16mm; height:16mm'}">
+                                </span>
+                            </t>
+                            <t t-else="">
+                                <span t-field="doc.name"
+                                      t-options="{'widget': 'barcode', 'img_style': 'width:30mm; height:8mm'}">
+                                </span>
+                            </t>
+                        </div>
+                    </div>
+                </div>
+            </t>
+        </t>
+    </t>

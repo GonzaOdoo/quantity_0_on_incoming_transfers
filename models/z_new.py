@@ -10,7 +10,7 @@ class PurchaseRequirements(models.Model):
 
     name = fields.Char('Nombre', default='Borrador')
     state = fields.Selection(selection=[('draft','Borrador'),('pending','Por aprobar'),('done','Hecho')],default="draft",string="Estado")
-    date = fields.Date('Fecha')
+    date = fields.Date('Fecha',default=fields.Date.today())
     partner_id = fields.Many2one('res.partner', string='Proveedor')
     category_id = fields.Many2one('product.category', string='Sector', required=True)
     line_ids = fields.One2many('purchase.requirements.line', 'requirement_id', string='Líneas de requerimiento')
@@ -27,6 +27,8 @@ class PurchaseRequirements(models.Model):
     compute='_compute_order_count',
     readonly=True
 )
+    supervisor = fields.Many2one('hr.employee',string='Supervisor')
+    
     @api.depends('purchase_ids')
     def _compute_order_count(self):
         for requirement in self:
@@ -163,14 +165,54 @@ class PurchaseRequirementsLine(models.Model):
     _name = 'purchase.requirements.line'
     _description = 'Linea de requirimiento'
 
-    partner_id = fields.Many2one('res.partner',string='Proveedor',required=True)
+    partner_id = fields.Many2one(
+        'res.partner',
+        string='Proveedor',
+        required=True,
+        compute='_compute_partner_id',
+        store=True,
+        readonly=False
+    )
     requirement_id = fields.Many2one('purchase.requirements',string='Requirimiento', ondelete='cascade')
     product_id = fields.Many2one('product.product',string='Producto')
     qty_on_hand = fields.Float('A mano', readonly=True, compute='_compute_qty')
     qty_forecast = fields.Float('Pronosticado', readonly=True, compute='_compute_qty')
-    qty_to_order = fields.Float('A ordenar')
+    qty_to_order = fields.Float(
+    'A ordenar',
+    compute='_compute_qty_to_order',
+    store=True,
+    readonly=False
+)
     min = fields.Float('Min',related='product_id.reordering_min_qty')
     max = fields.Float('Max',related='product_id.reordering_max_qty')
+    pending_sales = fields.Float('Ventas pendientes', compute='_compute_pending_sales', store=True)
+
+    @api.depends('product_id')
+    def _compute_partner_id(self):
+        for record in self:
+            if record.product_id and record.product_id.seller_ids:
+                # Si viene del wizard o acción, no sobreescribir si ya tiene valor
+                record.partner_id = record.product_id.seller_ids[0].partner_id
+
+    @api.depends('product_id')
+    def _compute_qty_to_order(self):
+        for record in self:
+            if not record.product_id:
+                record.qty_to_order = 0
+                continue
+    
+            product = record.product_id
+            virtual_available = product.virtual_available
+            reordering_max_qty = product.reordering_max_qty
+    
+            # Cálculo original: diferencia entre stock virtual y máximo
+            qty_needed = max(0, reordering_max_qty - virtual_available)
+    
+            # Si hay ventas pendientes y son mayores que qty_needed, usamos esas
+            if record.pending_sales > qty_needed:
+                record.qty_to_order += record.pending_sales
+            else:
+                record.qty_to_order = qty_needed
     
     @api.depends('product_id')
     def _compute_qty(self):
@@ -183,6 +225,24 @@ class PurchaseRequirementsLine(models.Model):
                 record.qty_forecast = record.product_id.qty_available + record.product_id.incoming_qty - record.product_id.outgoing_qty
 
 
+    @api.depends('product_id')
+    def _compute_pending_sales(self):
+        for record in self:
+            if not record.product_id:
+                record.pending_sales = 0.0
+                continue
+    
+            self._cr.execute("""
+                SELECT SUM(product_uom_qty - qty_delivered)
+                FROM sale_order_line
+                WHERE product_id = %s
+                  AND state IN ('sale', 'done')
+                  AND qty_delivered < product_uom_qty
+            """, [record.product_id.id])
+    
+            total_pending = self._cr.fetchone()[0] or 0.0
+            record.pending_sales = total_pending
+            
 class ProductProduct(models.Model):
     _inherit = 'product.product'
 
@@ -200,7 +260,6 @@ class ProductProduct(models.Model):
             lines.append((0, 0, {
                 'product_id': product.id,
                 'partner_id': product.seller_ids[0].partner_id.id if product.seller_ids[0] else False,
-                'qty_to_order': amount_to_order,  # Puedes ajustarlo según lógica (min/max, etc.)
             }))
 
         requirement.write({'line_ids': lines})
