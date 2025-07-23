@@ -46,9 +46,6 @@
                             <field name="date"  readonly="state != 'draft'"/>
                             <field name="category_id"  readonly="state != 'draft'"/>
                         </group>
-                        <group>
-                            <field name="supervisor"  readonly="state == 'done'" invisible="state == 'draft'" required="state == 'pending'"/>
-                        </group>
                     </group>
 
                     <notebook>
@@ -64,13 +61,13 @@
                                     <field name="min" readonly="1"/>
                                     <field name="max" readonly="1"/>
                                     <field name="pending_sales" readonly="1"/>
-                                    <field name="qty_to_order"/>
+                                    <field name="qty_to_order" string="Pedido"/>
+                                    <field name="to_order"/>
                                 </list>
                             </field>
                         </page>
                     </notebook>
                 </sheet>
-                <chatter/>
             </form>
         </field>
     </record>

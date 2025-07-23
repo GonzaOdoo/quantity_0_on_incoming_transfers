@@ -183,6 +183,7 @@ class PurchaseRequirementsLine(models.Model):
     store=True,
     readonly=False
 )
+    to_order = fields.Float('Total a ordenar',compute='_compute_to_order',store=True,readonly=False)
     min = fields.Float('Min',related='product_id.reordering_min_qty')
     max = fields.Float('Max',related='product_id.reordering_max_qty')
     pending_sales = fields.Float('Ventas pendientes', compute='_compute_pending_sales', store=True)
@@ -207,13 +208,14 @@ class PurchaseRequirementsLine(models.Model):
     
             # Cálculo original: diferencia entre stock virtual y máximo
             qty_needed = max(0, reordering_max_qty - virtual_available)
-    
-            # Si hay ventas pendientes y son mayores que qty_needed, usamos esas
-            if record.pending_sales > qty_needed:
-                record.qty_to_order += record.pending_sales
-            else:
-                record.qty_to_order = qty_needed
-    
+            record.qty_to_order = qty_needed
+                
+
+    @api.depends('qty_to_order')
+    def _compute_to_order(self):
+        for record in self:
+            record.to_order =  record.qty_to_order + record.pending_sales
+            
     @api.depends('product_id')
     def _compute_qty(self):
         for record in self:
