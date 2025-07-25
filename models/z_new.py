@@ -57,7 +57,7 @@ class PurchaseRequirements(models.Model):
             # Agrupar por proveedor
             partner_lines = {}
             for line in requirement.line_ids:
-                if line.qty_to_order <= 0:
+                if line.to_order <= 0:
                     continue
                 if line.partner_id.id not in partner_lines:
                     partner_lines[line.partner_id.id] = []
@@ -101,7 +101,7 @@ class PurchaseRequirements(models.Model):
                 # Procesar las líneas del requerimiento
                 for line in lines:
                     product_id = line.product_id.id
-                    qty_to_add = line.qty_to_order
+                    qty_to_add = line.to_order
     
                     if product_id in product_qty_map:
                         # Si ya existe, sumar cantidad
@@ -203,7 +203,7 @@ class PurchaseRequirementsLine(models.Model):
                 continue
     
             product = record.product_id
-            virtual_available = product.virtual_available
+            virtual_available = product.qty_available
             reordering_max_qty = product.reordering_max_qty
     
             # Cálculo original: diferencia entre stock virtual y máximo
