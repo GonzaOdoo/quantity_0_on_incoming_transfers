@@ -28,6 +28,24 @@ class PurchaseRequirements(models.Model):
     readonly=True
 )
     supervisor = fields.Many2one('hr.employee',string='Supervisor')
+    block_category = fields.Boolean('Editar bloqueado', default=False)
+
+
+    @api.model
+    def default_get(self, fields_list):
+        res = super(PurchaseRequirements, self).default_get(fields_list)
+        user = self.env.user
+        _logger.info("Default get values: %s", res)
+        # Asignar categoría por defecto desde la ubicación predeterminada del usuario
+        if user.internal_default_location and user.internal_default_location.product_category_id:
+            categ = user.internal_default_location.product_category_id
+            if 'category_id' in fields_list:
+                res['category_id'] = categ.id
+                _logger.info("Categoría por defecto asignada: %s", categ.name)
+        if user.has_group('__export__.res_groups_98_f78b878e'):
+            res['block_category'] = True
+            _logger.info("Usuario en grupo de bloqueo. block_category = True")
+        return res
     
     @api.depends('purchase_ids')
     def _compute_order_count(self):

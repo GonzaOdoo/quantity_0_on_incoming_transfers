@@ -44,7 +44,7 @@
                     <group>
                         <group>
                             <field name="date"  readonly="state != 'draft'"/>
-                            <field name="category_id"  readonly="state != 'draft'"/>
+                            <field name="category_id" readonly="state != 'draft' or block_category"/>
                         </group>
                     </group>
 
