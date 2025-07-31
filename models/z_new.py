@@ -1,5 +1,7 @@
 from odoo import models, fields, api
 from odoo.exceptions import UserError
+from datetime import datetime
+from dateutil.relativedelta import relativedelta
 import logging
 _logger = logging.getLogger(__name__)
 
@@ -221,11 +223,11 @@ class PurchaseRequirementsLine(models.Model):
                 continue
     
             product = record.product_id
-            virtual_available = product.qty_available
+            virtual_available = product.virtual_available
             reordering_max_qty = product.reordering_max_qty
     
             # Cálculo original: diferencia entre stock virtual y máximo
-            qty_needed = max(0, reordering_max_qty - virtual_available)
+            qty_needed = max(0, reordering_max_qty - virtual_available - record.pending_sales)
             record.qty_to_order = qty_needed
                 
 
@@ -252,13 +254,22 @@ class PurchaseRequirementsLine(models.Model):
                 record.pending_sales = 0.0
                 continue
     
+            # Obtener el inicio y fin del mes actual
+            today = datetime.today()
+            start_of_month = today.replace(day=1, hour=0, minute=0, second=0, microsecond=0)
+            end_of_month = (start_of_month + relativedelta(months=1)) - relativedelta(seconds=1)
+            _logger.info(f"{start_of_month},{end_of_month}")
+            
             self._cr.execute("""
-                SELECT SUM(product_uom_qty - qty_delivered)
-                FROM sale_order_line
-                WHERE product_id = %s
-                  AND state IN ('sale', 'done')
-                  AND qty_delivered < product_uom_qty
-            """, [record.product_id.id])
+                SELECT SUM(sol.product_uom_qty - sol.qty_delivered)
+                FROM sale_order_line sol
+                INNER JOIN sale_order so ON so.id = sol.order_id
+                WHERE sol.product_id = %s
+                  AND so.state IN ('sale', 'done')
+                  AND sol.qty_delivered < sol.product_uom_qty
+                  AND so.date_order >= %s
+                  AND so.date_order <= %s
+            """, [record.product_id.id, start_of_month, end_of_month])
     
             total_pending = self._cr.fetchone()[0] or 0.0
             record.pending_sales = total_pending
