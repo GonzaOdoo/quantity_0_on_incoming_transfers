@@ -203,10 +203,16 @@ class PurchaseRequirementsLine(models.Model):
     store=True,
     readonly=False
 )
-    to_order = fields.Float('Total a ordenar',compute='_compute_to_order',store=True,readonly=False)
+    to_order = fields.Float('Total a ordenar',compute='_compute_to_order',store=False,readonly=False)
     min = fields.Float('Min',related='product_id.reordering_min_qty')
     max = fields.Float('Max',related='product_id.reordering_max_qty')
-    pending_sales = fields.Float('Ventas pendientes', compute='_compute_pending_sales', store=True)
+    pending_sales = fields.Float('Ventas pendientes', compute='_compute_pending_sales', store=False)
+    nbr_moves_in = fields.Float(
+        'Entrantes',
+        related='product_id.incoming_qty',
+        readonly=True,
+        help="Número de movimientos de entrada (entrantes) del producto."
+    )
 
     @api.depends('product_id')
     def _compute_partner_id(self):
@@ -231,7 +237,7 @@ class PurchaseRequirementsLine(models.Model):
             record.qty_to_order = qty_needed
                 
 
-    @api.depends('qty_to_order')
+    @api.depends('qty_to_order','pending_sales')
     def _compute_to_order(self):
         for record in self:
             record.to_order =  record.qty_to_order + record.pending_sales

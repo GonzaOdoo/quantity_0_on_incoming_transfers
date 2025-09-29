@@ -58,6 +58,7 @@
                                     <field name="partner_id"/>
                                     <field name="qty_on_hand" readonly="1"/>
                                     <field name="qty_forecast" readonly="1"/>
+                                    <field name="nbr_moves_in" readonly="1"/>
                                     <field name="min" readonly="1"/>
                                     <field name="max" readonly="1"/>
                                     <field name="pending_sales" readonly="1"/>
