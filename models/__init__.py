@@ -10,3 +10,4 @@ from . import account_move_overwrite
 from . import helpdesk
 from . import z_new
 from . import stock_location
+from . import purchase_order
