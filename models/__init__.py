@@ -11,3 +11,4 @@ from . import helpdesk
 from . import z_new
 from . import stock_location
 from . import purchase_order
+from . import approval_request
