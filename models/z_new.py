@@ -87,7 +87,8 @@ class PurchaseRequirements(models.Model):
             for partner_id, lines in partner_lines.items():
                 if not partner_id:
                     continue
-    
+                partner = self.env['res.partner'].browse(partner_id)
+                payment_term_id = partner.property_supplier_payment_term_id.id
                 # Buscar cotización en borrador que YA TENGA ALGÚN REQUERIMIENTO asociado
                 existing_po = PurchaseOrder.search([
                     ('partner_id', '=', partner_id),
@@ -108,6 +109,7 @@ class PurchaseRequirements(models.Model):
                         'date_order': fields.Datetime.now(),
                         'company_id': self.env.company.id,
                         'purchase_requirement_ids': [(6, 0, [requirement.id])],
+                        'payment_term_id': payment_term_id,
                     }
                     po = PurchaseOrder.create(vals)
     
